@@ -28,7 +28,7 @@ public class UserDAO {
             stmt.setString(3, user.getEmail());
             stmt.setString(4, user.getFirstName());
             stmt.setString(5, user.getLastName());
-            stmt.setString(6, user.getGender());
+            stmt.setString(6, user.getGender().toLowerCase());
             stmt.setString(7, user.getPersonID());
 
             stmt.executeUpdate();

@@ -4,6 +4,7 @@ import DAO.AuthDAO;
 import DAO.DataAccessException;
 import DAO.PersonDAO;
 import DAO.UserDAO;
+import Model.AuthToken;
 import Model.User;
 import Request.RegisterRequest;
 import Result.ErrorResult;
@@ -20,16 +21,23 @@ public class RegisterService extends Service {
 
         PersonDAO personDAO = new PersonDAO(conn);
         String id = personDAO.generateID();
+
         User ourUser = new User(request.getUserName(), request.getPassword(), request.getEmail(),
                 request.getFirstName(), request.getLastName(), request.getGender(), id);
         try {
-
+            db.closeConnection(true);
+            conn = db.openConnection();
             UserDAO userDAO = new UserDAO(conn);
             userDAO.insert(ourUser);
+            db.closeConnection(true);
+            conn = db.openConnection();
+            AuthDAO authDAO = new AuthDAO(conn);
+            AuthToken token = authDAO.newAuthToken(ourUser);
+            String authToken = token.getToken();
+            RegisterResult registerResult = new RegisterResult(authToken,ourUser.getUserName(), id);
+            return registerResult;
 
-            return new RegisterResult(new AuthDAO(conn).newAuthToken(ourUser).getToken(), ourUser.getUserName(), id);
         } catch (DataAccessException e) {
-
             return new ErrorResult("error registering the user or getting the database");
         } finally {
             try {
